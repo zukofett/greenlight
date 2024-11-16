@@ -18,6 +18,7 @@
 !go.mod
 
 # sql migrations
+!*.sql
 
 !README.md
 !LICENSE
