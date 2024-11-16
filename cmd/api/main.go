@@ -4,9 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -25,6 +23,11 @@ type config struct {
         maxIdleConns int
         maxIdleTime  time.Duration
         queryTimeout time.Duration
+    }
+    limiter struct {
+        rps     float64
+        burst   int
+        enabled bool
     }
 }
 
@@ -47,6 +50,10 @@ func main() {
     flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connectio idle time")
     flag.DurationVar(&cfg.db.queryTimeout, "db-query-timeout", 3*time.Second, "PostgreSQL query timeout")
 
+    flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
+    flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+    flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
     flag.Parse()
 
     logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -68,20 +75,11 @@ func main() {
     }
 
 
-    srv := &http.Server{
-        Addr:         fmt.Sprintf(":%d", cfg.port),
-        Handler:      app.routes(),
-        IdleTimeout:  time.Minute,
-        ReadTimeout:  5 * time.Second,
-        WriteTimeout: 10 * time.Second,
-        ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+    err = app.serve()
+    if err != nil {
+        logger.Error(err.Error())
+        os.Exit(1)
     }
-
-    logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
-
-    err = srv.ListenAndServe()
-    logger.Error(err.Error())
-    os.Exit(1)
 }
 
 func openDB(cfg config) (*sql.DB, error) {
