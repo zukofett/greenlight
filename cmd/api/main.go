@@ -24,6 +24,7 @@ type config struct {
         maxOpenConns int
         maxIdleConns int
         maxIdleTime  time.Duration
+        queryTimeout time.Duration
     }
 }
 
@@ -44,6 +45,7 @@ func main() {
     flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
     flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
     flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connectio idle time")
+    flag.DurationVar(&cfg.db.queryTimeout, "db-query-timeout", 3*time.Second, "PostgreSQL query timeout")
 
     flag.Parse()
 
@@ -91,7 +93,6 @@ func openDB(cfg config) (*sql.DB, error) {
     db.SetMaxOpenConns(cfg.db.maxOpenConns)
     db.SetMaxIdleConns(cfg.db.maxIdleConns)
     db.SetConnMaxIdleTime(cfg.db.maxIdleTime)
-
 
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
