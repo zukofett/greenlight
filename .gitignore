@@ -8,11 +8,16 @@
 *
 
 # But not these files...
+
+# git related
 !/.gitignore
 
+# go files
 !*.go
 !go.sum
 !go.mod
+
+# sql migrations
 
 !README.md
 !LICENSE
