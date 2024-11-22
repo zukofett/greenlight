@@ -15,124 +15,139 @@ import (
 )
 
 func (app *application) readIDParam(r *http.Request) (int64, error) {
-    params := httprouter.ParamsFromContext(r.Context())
+	params := httprouter.ParamsFromContext(r.Context())
 
-    id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
-    if err != nil || id < 1 {
-        return 0, errors.New("invalid id parameter")
-    }
+	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid id parameter")
+	}
 
-    return id, nil
+	return id, nil
 }
 
 type envelope map[string]any
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
-    js, err := json.MarshalIndent(data, "", "\t")
-    if err != nil {
-        return err
-    }
+	js, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
 
-    js = append(js, '\n')
+	js = append(js, '\n')
 
-    for key, value := range headers {
-        w.Header()[key] = value
-    }
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(status)
-    w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(js)
 
-    return nil
+	return nil
 }
 
-func (app *application) readJSON(w http.ResponseWriter, r * http.Request, dest any) error {
-    maxBytes := 1_048_576
-    r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dest any) error {
+	maxBytes := 1_048_576
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
-    dec := json.NewDecoder(r.Body)
-    dec.DisallowUnknownFields()
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
 
-    err := dec.Decode(dest)
-    if err != nil {
-        var syntaxError *json.SyntaxError
-        var unmarshalTypeError *json.UnmarshalTypeError
-        var invalidUnmarshalError *json.InvalidUnmarshalError
-        var maxBytesError *http.MaxBytesError
+	err := dec.Decode(dest)
+	if err != nil {
+		var syntaxError *json.SyntaxError
+		var unmarshalTypeError *json.UnmarshalTypeError
+		var invalidUnmarshalError *json.InvalidUnmarshalError
+		var maxBytesError *http.MaxBytesError
 
-        switch {
-        case errors.As(err, &syntaxError):
-            return fmt.Errorf("Body contains badly-formed JSON (at character %d)", syntaxError.Offset)
+		switch {
+		case errors.As(err, &syntaxError):
+			return fmt.Errorf("Body contains badly-formed JSON (at character %d)", syntaxError.Offset)
 
-        case errors.Is(err, io.ErrUnexpectedEOF):
-            return errors.New("Body contains badly-formed JSON")
+		case errors.Is(err, io.ErrUnexpectedEOF):
+			return errors.New("Body contains badly-formed JSON")
 
-        case errors.As(err, &unmarshalTypeError):
-            if unmarshalTypeError.Field != "" {
-                return fmt.Errorf("Body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
-            }
-            return fmt.Errorf("Body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+		case errors.As(err, &unmarshalTypeError):
+			if unmarshalTypeError.Field != "" {
+				return fmt.Errorf("Body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+			}
+			return fmt.Errorf("Body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 
-        case errors.Is(err, io.EOF):
-            return fmt.Errorf("Body must not be empty")
+		case errors.Is(err, io.EOF):
+			return fmt.Errorf("Body must not be empty")
 
-        case strings.HasPrefix(err.Error(), "json: unknown field "):
-            fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
-            return fmt.Errorf("Body contains unknown key %s", fieldName)
+		case strings.HasPrefix(err.Error(), "json: unknown field "):
+			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
+			return fmt.Errorf("Body contains unknown key %s", fieldName)
 
-        case errors.As(err, &maxBytesError):
-            return fmt.Errorf("Body must not be larger then %d bytes", maxBytesError.Limit)
+		case errors.As(err, &maxBytesError):
+			return fmt.Errorf("Body must not be larger then %d bytes", maxBytesError.Limit)
 
-        case errors.As(err, &invalidUnmarshalError):
-            panic(err)
+		case errors.As(err, &invalidUnmarshalError):
+			panic(err)
 
-        default:
-            return err
-        }
-    }
+		default:
+			return err
+		}
+	}
 
-    err = dec.Decode(&struct{}{})
-    if !errors.Is(err, io.EOF) {
-        return fmt.Errorf("Body must only contain a single JSON value")
-    }
+	err = dec.Decode(&struct{}{})
+	if !errors.Is(err, io.EOF) {
+		return fmt.Errorf("Body must only contain a single JSON value")
+	}
 
-    return nil
+	return nil
 
 }
 
 func (app *application) readString(qs url.Values, key string, defaultValue string) string {
-    s := qs.Get(key)
-    
-    if s == "" {
-        return defaultValue
-    }
+	s := qs.Get(key)
 
-    return s
+	if s == "" {
+		return defaultValue
+	}
+
+	return s
 }
 
 func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
-    csv := qs.Get(key)
-    
-    if csv == "" {
-        return defaultValue
-    }
+	csv := qs.Get(key)
 
-    return strings.Split(csv, ",")
+	if csv == "" {
+		return defaultValue
+	}
+
+	return strings.Split(csv, ",")
 }
 
 func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
-    s := qs.Get(key)
+	s := qs.Get(key)
 
-    if s == "" {
-        return defaultValue
-    }
+	if s == "" {
+		return defaultValue
+	}
 
-    i, err := strconv.Atoi(s)
-    if err != nil {
-        v.AddError(key, "must be an integer value")
-        return defaultValue
-    }
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultValue
+	}
 
-    return i
+	return i
 }
 
+func (app *application) background(fn func()) {
+    app.wg.Add(1)
+
+	go func() {
+        defer app.wg.Done()
+
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+
+        fn()
+	}()
+}
