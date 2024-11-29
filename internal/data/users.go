@@ -28,7 +28,7 @@ type User struct {
 }
 
 func (u *User) IsAnonymus() bool {
-    return u == AnonymusUser
+	return u == AnonymusUser
 }
 
 type password struct {

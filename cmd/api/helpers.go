@@ -62,26 +62,26 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dest an
 
 		switch {
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf("Body contains badly-formed JSON (at character %d)", syntaxError.Offset)
+			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
 
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			return errors.New("Body contains badly-formed JSON")
+			return errors.New("body contains badly-formed JSON")
 
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf("Body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
-			return fmt.Errorf("Body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 
 		case errors.Is(err, io.EOF):
-			return fmt.Errorf("Body must not be empty")
+			return fmt.Errorf("body must not be empty")
 
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
-			return fmt.Errorf("Body contains unknown key %s", fieldName)
+			return fmt.Errorf("body contains unknown key %s", fieldName)
 
 		case errors.As(err, &maxBytesError):
-			return fmt.Errorf("Body must not be larger then %d bytes", maxBytesError.Limit)
+			return fmt.Errorf("body must not be larger then %d bytes", maxBytesError.Limit)
 
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
@@ -93,7 +93,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dest an
 
 	err = dec.Decode(&struct{}{})
 	if !errors.Is(err, io.EOF) {
-		return fmt.Errorf("Body must only contain a single JSON value")
+		return fmt.Errorf("body must only contain a single JSON value")
 	}
 
 	return nil
@@ -137,10 +137,10 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 }
 
 func (app *application) background(fn func()) {
-    app.wg.Add(1)
+	app.wg.Add(1)
 
 	go func() {
-        defer app.wg.Done()
+		defer app.wg.Done()
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -148,6 +148,6 @@ func (app *application) background(fn func()) {
 			}
 		}()
 
-        fn()
+		fn()
 	}()
 }

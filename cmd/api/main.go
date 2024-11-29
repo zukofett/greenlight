@@ -42,9 +42,9 @@ type config struct {
 		password string
 		sender   string
 	}
-    cors struct {
-        trustedOrigins []string
-    }
+	cors struct {
+		trustedOrigins []string
+	}
 }
 
 type application struct {
@@ -60,7 +60,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -77,10 +77,10 @@ func main() {
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "c92e8b1745c403", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.zukofett.net>", "SMTP sender")
 
-    flag.Func("cors-trusted-origins", "Trusted CORS origins (spaces separated)", func(s string) error {
-        cfg.cors.trustedOrigins = strings.Fields(s)
-        return nil
-    })
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (spaces separated)", func(s string) error {
+		cfg.cors.trustedOrigins = strings.Fields(s)
+		return nil
+	})
 
 	flag.Parse()
 
@@ -95,18 +95,16 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-    expvar.NewString("version").Set(version)
-    expvar.Publish("goroutines", expvar.Func(func() any {
-        return runtime.NumGoroutine()
-    }))
-    expvar.Publish("database", expvar.Func(func() any {
-        return db.Stats()
-    }))
-    expvar.Publish("timestamp", expvar.Func(func() any {
-        return time.Now().Unix()
-    }))
-
-
+	expvar.NewString("version").Set(version)
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Unix()
+	}))
 
 	app := &application{
 		config: cfg,
