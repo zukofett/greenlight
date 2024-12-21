@@ -20,8 +20,10 @@
 # sql migrations
 !*.sql
 
+# Text files
 !README.md
 !LICENSE
+!modules.txt
 
 # Makefile
 !Makefile
