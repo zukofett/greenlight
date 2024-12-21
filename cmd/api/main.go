@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"runtime"
@@ -81,8 +82,15 @@ func main() {
 		cfg.cors.trustedOrigins = strings.Fields(s)
 		return nil
 	})
+    
+    displayVersion := flag.Bool("version", false, "Display version and exit")
 
 	flag.Parse()
+
+    if *displayVersion {
+        fmt.Printf("Version:\t%s\n", version)
+        os.Exit(0)
+    }
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
