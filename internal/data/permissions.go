@@ -18,6 +18,11 @@ type PermissionModel struct {
 	DB *sql.DB
 }
 
+type PermissionModelInterface interface {
+    GetAllForUser(ctx context.Context, userID int64) (Permissions, error)
+    AddForUser(ctx context.Context, userID int64, codes ...string) error
+}
+
 func (m PermissionModel) GetAllForUser(ctx context.Context, userID int64) (Permissions, error) {
 	query := `
         SELECT permissions.code
