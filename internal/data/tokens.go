@@ -56,9 +56,9 @@ type TokenModel struct {
 }
 
 type TokenModelInterface interface {
-    New(ctx context.Context, userID int64, ttl time.Duration, scope string) (*Token, error)
-    Insert(ctx context.Context, token *Token) error
-    DeleteAllForUser(ctx context.Context, scope string, userID int64) error
+	New(ctx context.Context, userID int64, ttl time.Duration, scope string) (*Token, error)
+	Insert(ctx context.Context, token *Token) error
+	DeleteAllForUser(ctx context.Context, scope string, userID int64) error
 }
 
 func (m TokenModel) New(ctx context.Context, userID int64, ttl time.Duration, scope string) (*Token, error) {

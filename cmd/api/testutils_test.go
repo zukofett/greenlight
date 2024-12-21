@@ -16,7 +16,7 @@ func newTestConfigs() config {
 	cfg.limiter.rps = 2
 	cfg.limiter.burst = 2
 
-    return cfg
+	return cfg
 }
 
 func newTestApplication(t *testing.T) *application {

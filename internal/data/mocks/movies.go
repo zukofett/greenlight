@@ -6,12 +6,13 @@ import (
 
 	"github.com/zukofett/greenlight/internal/data"
 )
+
 var mockMetadata = data.Metadata{
-    CurrentPage: 1,
-    PageSize: 25,
-    FirstPage: 1,
-    LastPage:1,
-    TotalRecords: 1,
+	CurrentPage:  1,
+	PageSize:     25,
+	FirstPage:    1,
+	LastPage:     1,
+	TotalRecords: 1,
 }
 
 var mockMovie = data.Movie{
@@ -59,5 +60,5 @@ func (m MovieModel) Delete(_ context.Context, id int64) error {
 }
 
 func (m MovieModel) GetAll(_ context.Context, title string, genres []string, filters data.Filters) ([]*data.Movie, data.Metadata, error) {
-    return []*data.Movie{&mockMovie}, mockMetadata, nil 
+	return []*data.Movie{&mockMovie}, mockMetadata, nil
 }

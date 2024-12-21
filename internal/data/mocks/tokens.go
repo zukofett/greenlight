@@ -7,15 +7,14 @@ import (
 	"github.com/zukofett/greenlight/internal/data"
 )
 
-type TokenModel struct {}
-
+type TokenModel struct{}
 
 var mockToken = data.Token{
-    Plaintext: "pa55word",
-    Hash: []byte{},
-    UserID: 1,
-    Expiry: time.Now().Add(2*time.Minute),
-    Scope: data.ScopeAuthentication,
+	Plaintext: "pa55word",
+	Hash:      []byte{},
+	UserID:    1,
+	Expiry:    time.Now().Add(2 * time.Minute),
+	Scope:     data.ScopeAuthentication,
 }
 
 func generateMockToken(_ int64, _ time.Duration, _ string) (*data.Token, error) {

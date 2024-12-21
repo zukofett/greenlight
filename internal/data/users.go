@@ -93,10 +93,10 @@ type UserModel struct {
 }
 
 type UserModelInterface interface {
-    Insert(ctx context.Context, user *User) error
-    GetByEmail(ctx context.Context, email string) (*User, error)
-    Update(ctx context.Context, user *User) error
-    GetForToken(ctx context.Context, tokenScope string, tokenPlaintext string) (*User, error)
+	Insert(ctx context.Context, user *User) error
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	Update(ctx context.Context, user *User) error
+	GetForToken(ctx context.Context, tokenScope string, tokenPlaintext string) (*User, error)
 }
 
 func (m UserModel) Insert(ctx context.Context, user *User) error {
