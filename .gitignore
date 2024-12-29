@@ -31,5 +31,8 @@
 # Ansible
 !*.yaml
 
+# Setup scripts
+!*.sh
+
 # ...even if they are in subdirectories
 !*/
