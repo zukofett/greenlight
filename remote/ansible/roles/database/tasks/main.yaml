@@ -1,0 +1,58 @@
+---
+- name: Install migrate
+  ansible.builtin.unarchive:
+    src: https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz
+    dest: /usr/local/bin/
+    creates: /usr/local/bin/migrate
+    remote_src: true
+    mode: '0755'
+    extra_opts: [--strip-components=1]
+
+- name: Install postgresql and dependencies
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - libpq-dev
+      - python3-psycopg2
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure postgresql is running
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Create a new database with name "greenlight"
+  community.postgresql.postgresql_db:
+    name: greenlight
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Add citest extension to postgress
+  community.postgresql.postgresql_ext:
+    name: citext
+    db: greenlight
+  become: true
+  become_user: postgres
+
+- name: Create database user
+  community.postgresql.postgresql_user:
+    db: greenlight
+    name: "{{ database_username | default('greenlight') }}"
+    password: "{{ db_password }}"
+    priv: ALL
+  become: true
+  become_user: postgres
+  no_log: true
+
+- name: Set DB DSN
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    state: present
+    regexp: '^GREENLIGHT_DB_DSN='
+    line: "GREENLIGHT_DB_DSN='postgres://{{ database_username }}:{{ db_password }}@{{ database_db_dsn }}/greenlight'"
+    mode: '0600'
+  no_log: true

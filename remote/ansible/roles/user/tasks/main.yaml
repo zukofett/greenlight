@@ -1,0 +1,18 @@
+---
+- name: Create user to manage the API
+  ansible.builtin.user:
+    name: "{{ user_username | default('greenlight') }}"
+    create_home: true
+    shell: /bin/bash
+    groups: sudo
+    append: true
+    update_password: on_create
+  notify: Force user to change password
+
+- name: Copy ssh keys on remote
+  ansible.posix.synchronize:
+    src: /root/.ssh
+    dest: "/home/{{ user_username }}/"
+    rsync_opts: "--chown={{ user_username }}:{{ user_username }}"
+  delegate_to: "{{ inventory_hostname }}"
+  become: true

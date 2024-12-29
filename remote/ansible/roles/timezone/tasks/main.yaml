@@ -1,0 +1,11 @@
+---
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ timezone_timezone | default('UTC') }}"
+
+- name: Install locales
+  ansible.builtin.apt:
+    name: locales-all
+    state: present
+    update_cache: true
+    cache_valid_time: 3600

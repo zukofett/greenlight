@@ -1,0 +1,56 @@
+---
+- name: Set up API server
+  hosts: droplets
+  remote_user: root
+  become: true
+  become_method: ansible.builtin.sudo
+  vars_prompt:
+    - name: db_password
+      prompt: Enter password for greenlight DB user
+      private: true
+      confirm: true
+      salt_size: 7
+
+  tasks:
+    - name: Enable universe repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+        state: present
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Configure firewall
+      ansible.builtin.include_role:
+        name: firewall
+
+    - name: Configure timezone and locales
+      ansible.builtin.include_role:
+        name: timezone
+
+    - name: Create and configure user
+      ansible.builtin.include_role:
+        name: user
+
+    - name: Configure postgresql database
+      ansible.builtin.include_role:
+        name: database
+      vars:
+        db_password: db_password
+
+    - name: Configure Caddy server
+      ansible.builtin.include_role:
+        name: caddy
+
+    - name: Perform system upgrade
+      ansible.builtin.apt:
+        upgrade: true
+        update_cache: true
+        dpkg_options: 'force-confnew'
+
+  handlers:
+    - name: Reboot machine and send a message
+      ansible.builtin.reboot:
+        msg: "Rebooting machine in 5 seconds"

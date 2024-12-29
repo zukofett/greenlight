@@ -1,0 +1,6 @@
+---
+- name: Force user to change password
+  ansible.builtin.command: chage --lastday 0 "{{ user_username }}"
+  register: cmd_out
+  changed_when: cmd_out.rc == 0
+  become: true
