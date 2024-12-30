@@ -34,5 +34,11 @@
 # Setup scripts
 !*.sh
 
+# Service file
+!*.service
+
+# Caddyfile
+!Caddyfile
+
 # ...even if they are in subdirectories
 !*/

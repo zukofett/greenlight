@@ -58,6 +58,7 @@ build/api:
 	go build -ldflags='-s' -o=./bin/api ./cmd/api
 	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
 
+
 # ============================================================================ #
 # QUALITY CONTROL
 # ============================================================================ #
@@ -92,7 +93,7 @@ audit:
 # ============================================================================ #
 
 
-production_host_ip = 
+production_host_ip = '64.227.127.235'
 
 
 ## production/connect: connect to the production server
@@ -106,4 +107,13 @@ production/connect:
 production/deploy/api:
 	rsync -P ./bin/linux_amd64/api greenlight@${production_host_ip}:~
 	rsync -rP --delete ./migrations greenlight@${production_host_ip}:~
-	ssh -t greenlight@${production_host_ip} 'migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up'
+	rsync -P ./remote/production/api.service greenlight@${production_host_ip}:~
+	rsync -P ./remote/production/Caddyfile greenlight@${production_host_ip}:~
+	ssh -t greenlight@${production_host_ip} '\
+		migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up \
+		&& sudo mv ~/api.service /etc/systemd/system/ \
+		&& sudo systemctl enable api \
+		&& sudo systemctl restart api \
+		&& sudo mv ~/Caddyfile /etc/caddy/ \
+		&& sudo systemctl reload caddy \
+	'
